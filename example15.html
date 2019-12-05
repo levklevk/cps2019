@@ -10,11 +10,10 @@
     
 <div>
 <canvas id="canvas1" width ="200" height = "100" style="border: 1px dashed #00c3c3;"></canvas>    
-<canvas id="smile" width="200" height="200" fillstyle="#007700#">
-    <p>Ваш браузер не поддерживает рисование.</p>
-</canvas>
+</div>
 
-</div>       
+<button id="buttonStartControlAlgorithm" onClick="startControlAlgorithm()">Start Ctrl Alg</button>
+<button id="buttonStopControlAlgorithm" onClick="stopControlAlgorithm()">Stop Ctrl Alg</button>
   
 <div id="print1"></div>    
  
@@ -72,11 +71,6 @@ function load() { // function that is started, when we open the page
     
 };
 
-function abs(x1){
-    if (x1<0) return -x1;
-    else return x1;
-}
-
 ws.onmessage = function(event) {
     var msg = JSON.parse(event.data); // string from ws is put to JSON
     switch(msg.type) {
@@ -114,33 +108,20 @@ ws.onmessage = function(event) {
             ctx1.stroke(); // to draw the line
             // Draw second graph graph END ************************************    
             
-            log(potValue1 + "|" + potValue2);
-            if (abs(potValue1-potValue2)<=3)
-            {
-                var c = document.getElementById("smile");
-                var ctx = c.getContext("2d");
-                ctx.fillStyle = "#00FF00";
-                ctx.fillRect(20, 20, 150, 100);
-            }
-            else if (potValue1>potValue2)
-            {
-                var c = document.getElementById("smile");
-                var ctx = c.getContext("2d");
-                ctx.fillStyle = "#FF0000";
-                ctx.fillRect(20, 20, 150, 100);
-            }
-            else 
-            {
-                var c = document.getElementById("smile");
-                var ctx = c.getContext("2d");
-                ctx.fillStyle = "#0000FF";
-                ctx.fillRect(20, 20, 150, 100);
-            }
-
-            
+            log(potValue1 + "|" + potValue2 + "|" + msg.error + "|" + msg.pwm);
         break;        
     }
 };
+
+function startControlAlgorithm () {
+    messageJSON = {"type": "startControlAlgorithm"};
+    ws.send(JSON.stringify(messageJSON)); // we have to stringify JSON to send it over websocket    
+}
+
+function stopControlAlgorithm () {
+    messageJSON = {"type": "stopControlAlgorithm"};
+    ws.send(JSON.stringify(messageJSON)); // we have to stringify JSON to send it over websocket    
+}
  
 </script>
 

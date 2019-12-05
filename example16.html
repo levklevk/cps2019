@@ -10,11 +10,21 @@
     
 <div>
 <canvas id="canvas1" width ="200" height = "100" style="border: 1px dashed #00c3c3;"></canvas>    
-<canvas id="smile" width="200" height="200" fillstyle="#007700#">
-    <p>Ваш браузер не поддерживает рисование.</p>
-</canvas>
+</div>
 
-</div>       
+pCoeff: <input id="pCoeff" value="0.1" size="5" />
+<button id="buttonStartControlAlgorithm1" onClick="startControlAlgorithm1();">Start Ctrl Alg1</button>
+<button id="buttonStopControlAlgorithm" onClick="stopControlAlgorithm();">Stop Ctrl Alg</button>
+<p></p>
+Kp: <input id="Kp1" value="0.15" size = "5" />
+Ki: <input id="Ki1" value="0.0055" size = "5" />
+Kd: <input id="Kd1" value="0.25" size = "5" />
+<button id="buttonStartControlAlgorithm2" onClick="startControlAlgorithm2();">Start Ctrl Alg2</button>
+<button id="buttonStopControlAlgorithm" onClick="stopControlAlgorithm();">Stop Ctrl Alg</button>
+
+<div id="divForStaticPrint"> </div>
+<p></p>
+
   
 <div id="print1"></div>    
  
@@ -34,7 +44,11 @@ var potValue2 = 0; // value of second potentiometer
 var x2 = new Array(); // array for x2 variable
 var y2 = new Array(); // array for y2 variable
 var canvas1;
-var ctx1;     
+var ctx1;
+var pCoeff = 0;
+var Kp1 = 0;
+var Ki1 = 0;
+var Kd1 = 0;
  
 function log(msg) {
   var node=document.createElement("tr"); // we create the variable node as the a table row (tr)
@@ -72,16 +86,14 @@ function load() { // function that is started, when we open the page
     
 };
 
-function abs(x1){
-    if (x1<0) return -x1;
-    else return x1;
-}
-
 ws.onmessage = function(event) {
     var msg = JSON.parse(event.data); // string from ws is put to JSON
     switch(msg.type) {
         case "message":
             log(msg.content); // add msg to div
+        break;
+        case "staticMsgToClient":
+            document.getElementById("divForStaticPrint").innerHTML = + msg.content; // we print to div
         break;
         case "clientReadValues":
             
@@ -114,33 +126,32 @@ ws.onmessage = function(event) {
             ctx1.stroke(); // to draw the line
             // Draw second graph graph END ************************************    
             
-            log(potValue1 + "|" + potValue2);
-            if (abs(potValue1-potValue2)<=3)
-            {
-                var c = document.getElementById("smile");
-                var ctx = c.getContext("2d");
-                ctx.fillStyle = "#00FF00";
-                ctx.fillRect(20, 20, 150, 100);
-            }
-            else if (potValue1>potValue2)
-            {
-                var c = document.getElementById("smile");
-                var ctx = c.getContext("2d");
-                ctx.fillStyle = "#FF0000";
-                ctx.fillRect(20, 20, 150, 100);
-            }
-            else 
-            {
-                var c = document.getElementById("smile");
-                var ctx = c.getContext("2d");
-                ctx.fillStyle = "#0000FF";
-                ctx.fillRect(20, 20, 150, 100);
-            }
-
-            
+            log(potValue1 + "|" + potValue2 + "|" + msg.error + "|" + msg.pwm);
         break;        
     }
 };
+
+function startControlAlgorithm1() {
+    stopControlAlgorithm(); // just in case, if it is not started
+    pCoeff = document.getElementById("pCoeff").value; // read the value of coeff from input field
+    messageJSON = {"type": "startControlAlgorithm", "ctrlAlgNo": 1, "pCoeff": pCoeff};
+    ws.send(JSON.stringify(messageJSON)); // we have to stringify JSON to send it over websocket
+}
+
+function startControlAlgorithm2() {
+    stopControlAlgorithm(); // just in case, if it is not started
+    Kp1 = document.getElementById("Kp1").value; // read the value of coeff from input field
+    Ki1 = document.getElementById("Ki1").value; // read the value of coeff from input field
+    Kd1 = document.getElementById("Kd1").value; // read the value of coeff from input field
+    messageJSON = {"type": "startControlAlgorithm", "ctrlAlgNo": 2, "Kp1": Kp1, "Ki1": Ki1, "Kd1": Kd1};
+    ws.send(JSON.stringify(messageJSON)); // we have to stringify JSON to send it over websocket    
+}
+
+
+function stopControlAlgorithm () {
+    messageJSON = {"type": "stopControlAlgorithm"};
+    ws.send(JSON.stringify(messageJSON)); // we have to stringify JSON to send it over websocket    
+}
  
 </script>
 
